@@ -1,0 +1,554 @@
+<div class="foot-quiz-container">
+  <!-- Quiz Question Card -->
+  <div id="quiz-box" class="card">
+    <div class="header">
+      <span class="badge">Foot DNA Test</span>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="step-num" id="stepIndicator">Question 1 / 5</div>
+    </div>
+
+    <!-- Question Section -->
+    <div class="question-body">
+      <h2 id="qTitle">What is the shape of your toes?</h2>
+      <p class="subtitle" id="qDesc">Observe the alignment and relative lengths of your toes while standing.</p>
+      
+      <!-- Options Container (Steps 1-4) -->
+      <div class="options-grid" id="optionsContainer"></div>
+
+      <!-- Step 5: Foot Length Input -->
+      <div id="lengthInputBox" class="length-box hidden">
+        <div class="input-row">
+          <input type="number" id="footLengthInput" placeholder="e.g. 28" step="0.5" min="10" max="35" value="28">
+          <span class="unit">cm</span>
+        </div>
+        <p class="input-hint">Measure the straight distance from the heel to the tip of your longest toe.</p>
+        <button class="btn-primary" onclick="submitFootLength()">Generate My Foot DNA ✨</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Result Summary Card (Initially Hidden) -->
+  <div id="result-box" class="card result-card hidden">
+    <div class="result-header">
+      <span class="dna-tag">Your Unique Foot DNA</span>
+      <div class="dna-code" id="dnaCodeDisplay">GFOO-28</div>
+      <div class="dna-title" id="dnaSummaryTitle">Greek Toe · Flat Arch · Standard Instep & Width</div>
+    </div>
+
+    <!-- 4 Dimension Breakdown -->
+    <div class="breakdown-grid">
+      <div class="breakdown-item">
+        <span class="dim-label">Toe Shape</span>
+        <span class="dim-val" id="dimToe">Greek (G)</span>
+      </div>
+      <div class="breakdown-item">
+        <span class="dim-label">Arch Type</span>
+        <span class="dim-val" id="dimArch">Flat (F)</span>
+      </div>
+      <div class="breakdown-item">
+        <span class="dim-label">Instep Height</span>
+        <span class="dim-val" id="dimInstep">Optimal (O)</span>
+      </div>
+      <div class="breakdown-item">
+        <span class="dim-label">Foot Width</span>
+        <span class="dim-val" id="dimWidth">Optimal (O)</span>
+      </div>
+    </div>
+
+    <!-- Personalized Shoe Fitting Advice -->
+    <div class="advice-card">
+      <h4>👟 Personalized Fitting Guide</h4>
+      <p id="adviceText">Loading recommendations...</p>
+    </div>
+
+    <button class="btn-outline" onclick="restartQuiz()">🔄 Retake Assessment</button>
+  </div>
+</div>
+
+<style>
+  :root {
+    --primary: #e07a5f;
+    --primary-hover: #cf684d;
+    --secondary: #2d7a64;
+    --bg: #f4eee8;
+    --card-bg: #ffffff;
+    --text-main: #2b2b2b;
+    --text-sub: #7a7a7a;
+    --border: #f0e6dd;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    padding: 16px;
+  }
+
+  .foot-quiz-container {
+    width: 100%;
+    max-width: 440px;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border-radius: 28px;
+    padding: 32px 24px;
+    box-shadow: 0 16px 36px rgba(180, 150, 130, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    transition: all 0.3s ease;
+  }
+
+  .badge {
+    background: #fdf0eb;
+    color: var(--primary);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-block;
+  }
+
+  .progress-track {
+    width: 100%;
+    height: 6px;
+    background: #f1e9e2;
+    border-radius: 999px;
+    margin: 16px 0 10px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    width: 20%;
+    height: 100%;
+    background: var(--primary);
+    border-radius: 999px;
+    transition: width 0.3s ease;
+  }
+
+  .step-num {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-sub);
+  }
+
+  .question-body {
+    margin-top: 20px;
+  }
+
+  h2 {
+    font-size: 20px;
+    color: var(--text-main);
+    line-height: 1.4;
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-sub);
+    margin-bottom: 24px;
+    line-height: 1.45;
+  }
+
+  .options-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .option-card {
+    background: #fff;
+    border: 2px solid var(--border);
+    padding: 16px 18px;
+    border-radius: 18px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .option-card:hover {
+    border-color: var(--primary);
+    background: #fdfaf7;
+    transform: translateY(-2px);
+  }
+
+  .opt-code {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: #f7ede6;
+    color: var(--primary);
+    font-weight: 800;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .opt-content {
+    flex: 1;
+  }
+
+  .opt-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 2px;
+  }
+
+  .opt-desc {
+    font-size: 12px;
+    color: var(--text-sub);
+    line-height: 1.4;
+  }
+
+  /* Step 5 Foot Length Input */
+  .length-box {
+    margin-top: 20px;
+    text-align: center;
+  }
+
+  .input-row {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .length-box input {
+    width: 140px;
+    font-size: 38px;
+    font-weight: 800;
+    text-align: center;
+    padding: 8px;
+    border-radius: 16px;
+    border: 2px solid var(--border);
+    background: #fff;
+    color: var(--text-main);
+    outline: none;
+  }
+
+  .length-box input:focus {
+    border-color: var(--primary);
+  }
+
+  .input-row .unit {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-sub);
+  }
+
+  .input-hint {
+    font-size: 12px;
+    color: var(--text-sub);
+    margin-bottom: 28px;
+    line-height: 1.5;
+  }
+
+  .btn-primary {
+    width: 100%;
+    background: var(--primary);
+    color: #ffffff;
+    border: none;
+    padding: 16px;
+    border-radius: 18px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 18px rgba(224, 122, 95, 0.3);
+    transition: all 0.2s ease;
+  }
+
+  .btn-primary:hover {
+    background: var(--primary-hover);
+  }
+
+  .btn-primary:active {
+    transform: scale(0.98);
+  }
+
+  /* Result Screen */
+  .result-card {
+    text-align: center;
+    animation: fadeIn 0.4s ease;
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .dna-tag {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-sub);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .dna-code {
+    font-size: 44px;
+    font-weight: 900;
+    color: var(--primary);
+    letter-spacing: 2px;
+    margin: 6px 0;
+  }
+
+  .dna-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--secondary);
+    margin-bottom: 24px;
+  }
+
+  .breakdown-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .breakdown-item {
+    background: #fbf7f4;
+    padding: 12px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: left;
+  }
+
+  .dim-label {
+    font-size: 11px;
+    color: var(--text-sub);
+  }
+
+  .dim-val {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+
+  .advice-card {
+    background: #f2f7f5;
+    border-left: 4px solid var(--secondary);
+    border-radius: 14px;
+    padding: 16px;
+    text-align: left;
+    margin-bottom: 24px;
+  }
+
+  .advice-card h4 {
+    font-size: 13px;
+    color: var(--secondary);
+    margin-bottom: 6px;
+  }
+
+  .advice-card p {
+    font-size: 13px;
+    color: #4a5953;
+    line-height: 1.6;
+  }
+
+  .btn-outline {
+    width: 100%;
+    background: transparent;
+    border: 2px solid var(--border);
+    color: var(--text-main);
+    padding: 14px;
+    border-radius: 18px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-outline:hover {
+    border-color: var(--text-main);
+  }
+</style>
+
+<script>
+  // 4 Multiple Choice Questions Data
+  const quizData = [
+    {
+      title: "What is the shape of your toes?",
+      desc: "Look down at your feet while standing relaxed. Which toe is most prominent?",
+      dimension: "toe",
+      options: [
+        { code: "G", label: "Greek Foot", detail: "Second toe is noticeably longer than the big toe (pointed profile)." },
+        { code: "E", label: "Egyptian Foot", detail: "Big toe is the longest, followed by smaller toes in a descending slope." },
+        { code: "R", label: "Roman Foot", detail: "First three toes are nearly equal in length (squarish profile)." }
+      ]
+    },
+    {
+      title: "What does your wet footprint look like?",
+      desc: "This indicates your medial longitudinal arch height and structure:",
+      dimension: "arch",
+      options: [
+        { code: "F", label: "Flat Arch", detail: "Midfoot imprint is almost entirely filled in with minimal curvature." },
+        { code: "O", label: "Optimal Arch", detail: "Midfoot imprint curves inward by roughly one-third to one-half." },
+        { code: "H", label: "High Arch", detail: "Narrow imprint connection with major pressure isolated to heel and forefoot." }
+      ]
+    },
+    {
+      title: "How does footwear fit across the top of your foot?",
+      desc: "Evaluates dorsal instep thickness and bone volume:",
+      dimension: "instep",
+      options: [
+        { code: "K", label: "Thick Instep", detail: "Laces require loose tying; frequently feels pinched by the tongue." },
+        { code: "O", label: "Optimal Instep", detail: "Fits comfortably in standard shoes without excessive pressure." },
+        { code: "N", label: "Thin Instep", detail: "Feels roomy or loose around the throatline even when laces are tight." }
+      ]
+    },
+    {
+      title: "Do you experience pinching at the base of your toes?",
+      desc: "Evaluates forefoot ball width:",
+      dimension: "width",
+      options: [
+        { code: "W", label: "Wide Width", detail: "Frequent friction on metatarsal heads; often requires 2E/Wide sizing." },
+        { code: "O", label: "Optimal Width", detail: "Standard D/B width provides a snug, unconstrained fit." }
+      ]
+    }
+  ];
+
+  let currentStep = 0;
+  let userDNA = {
+    toe: "",
+    arch: "",
+    instep: "",
+    width: "",
+    length: "28"
+  };
+
+  const toeNameMap = { G: "Greek Foot", R: "Roman Foot", E: "Egyptian Foot" };
+  const archNameMap = { F: "Flat Arch", O: "Optimal Arch", H: "High Arch" };
+  const instepNameMap = { K: "Thick Instep", O: "Optimal Instep", N: "Thin Instep" };
+  const widthNameMap = { W: "Wide Width", O: "Optimal Width" };
+
+  function renderStep() {
+    const totalSteps = 5;
+    document.getElementById("progressFill").style.width = `${((currentStep + 1) / totalSteps) * 100}%`;
+    document.getElementById("stepIndicator").textContent = `Question ${currentStep + 1} / ${totalSteps}`;
+
+    const optContainer = document.getElementById("optionsContainer");
+    const lengthBox = document.getElementById("lengthInputBox");
+
+    if (currentStep < 4) {
+      optContainer.classList.remove("hidden");
+      lengthBox.classList.add("hidden");
+
+      const data = quizData[currentStep];
+      document.getElementById("qTitle").textContent = data.title;
+      document.getElementById("qDesc").textContent = data.desc;
+
+      optContainer.innerHTML = "";
+      data.options.forEach(opt => {
+        const btn = document.createElement("div");
+        btn.className = "option-card";
+        btn.innerHTML = `
+          <div class="opt-code">${opt.code}</div>
+          <div class="opt-content">
+            <div class="opt-title">${opt.label}</div>
+            <div class="opt-desc">${opt.detail}</div>
+          </div>
+        `;
+        btn.onclick = () => selectOption(data.dimension, opt.code);
+        optContainer.appendChild(btn);
+      });
+    } else {
+      // Step 5: Input foot length
+      optContainer.classList.add("hidden");
+      lengthBox.classList.remove("hidden");
+      document.getElementById("qTitle").textContent = "Final Step: What is your exact bare foot length?";
+      document.getElementById("qDesc").textContent = "Enter your measured standing heel-to-toe length in centimeters (cm).";
+    }
+  }
+
+  function selectOption(dim, code) {
+    userDNA[dim] = code;
+    currentStep++;
+    renderStep();
+  }
+
+  function submitFootLength() {
+    const val = document.getElementById("footLengthInput").value;
+    userDNA.length = val ? parseFloat(val) : 28;
+    showFinalResult();
+  }
+
+  function showFinalResult() {
+    document.getElementById("quiz-box").classList.add("hidden");
+    document.getElementById("result-box").classList.remove("hidden");
+
+    // Compose 4-letter DNA code + length (e.g. GFOO-28)
+    const code = `${userDNA.toe}${userDNA.arch}${userDNA.instep}${userDNA.width}-${userDNA.length}`;
+    document.getElementById("dnaCodeDisplay").textContent = code;
+
+    // Summary Header
+    document.getElementById("dnaSummaryTitle").textContent = 
+      `${toeNameMap[userDNA.toe]} · ${archNameMap[userDNA.arch]} · ${instepNameMap[userDNA.instep]}`;
+
+    // 4 Dimension Details
+    document.getElementById("dimToe").textContent = `${toeNameMap[userDNA.toe]} (${userDNA.toe})`;
+    document.getElementById("dimArch").textContent = `${archNameMap[userDNA.arch]} (${userDNA.arch})`;
+    document.getElementById("dimInstep").textContent = `${instepNameMap[userDNA.instep]} (${userDNA.instep})`;
+    document.getElementById("dimWidth").textContent = `${widthNameMap[userDNA.width]} (${userDNA.width})`;
+
+    // Generate Dynamic Advice
+    let advice = [];
+    if (userDNA.toe === "G") {
+      advice.push("With a longer second toe, avoid overly pointed toe boxes and prioritize almond-shaped or gently curved footwear to eliminate apex cramping.");
+    } else if (userDNA.toe === "R") {
+      advice.push("Because your front toes are uniform in length, look for square or wide round-toe lasts to prevent lateral squishing.");
+    } else if (userDNA.toe === "E") {
+      advice.push("With your big toe leading the slope, standard oblique lasts and natural running footwear contour smoothly to your foot profile.");
+    }
+
+    if (userDNA.arch === "F") {
+      advice.push("For lower arches, select structured footwear featuring firm medial arch counters and rigid thermoplastic heel counters (TPU) to prevent overpronation.");
+    } else if (userDNA.arch === "H") {
+      advice.push("Higher arches absorb less impact naturally; prioritize cushioned EVA/nitrogen-infused midsoles and flexible torsional support.");
+    }
+
+    if (userDNA.instep === "K" || userDNA.width === "W") {
+      advice.push("Due to elevated instep volume or wide forefoot dimensions, consider adding +0.8 to 1.0 cm of fitting allowance, or select 2E/Wide fit specifications.");
+    } else {
+      advice.push(`For standard volume profiles, a default +0.5 cm expansion over your ${userDNA.length} cm base length offers optimal ergonomic room.`);
+    }
+
+    document.getElementById("adviceText").textContent = advice.join(" ");
+  }
+
+  function restartQuiz() {
+    currentStep = 0;
+    userDNA = { toe: "", arch: "", instep: "", width: "", length: "28" };
+    document.getElementById("result-box").classList.add("hidden");
+    document.getElementById("quiz-box").classList.remove("hidden");
+    renderStep();
+  }
+
+  // Initialize
+  renderStep();
+</script>
